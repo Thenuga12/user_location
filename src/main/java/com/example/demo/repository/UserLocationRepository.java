@@ -12,4 +12,6 @@ public interface UserLocationRepository extends JpaRepository<UserLocation, Long
   List<UserLocation> findTopNByUserIdOrderByTimeStampDesc(String userId);
 
   List<UserLocation> findAllByUserIdOrderByTimeStampDesc(String userId);
+
+  boolean existsByUserId(String userId);
 }

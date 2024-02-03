@@ -59,4 +59,9 @@ public class UserLocationServiceImpl implements UserLocationService {
     }
     return userLocationResponseDtoList;
   }
+
+  @Override
+  public boolean checkExistsUserId(String userId) {
+    return userLocationRepository.existsByUserId(userId);
+  }
 }

@@ -14,4 +14,6 @@ public interface UserLocationService {
   List<UserLocationResponseDto> getHistoricalLocations(String userId, int limit);
 
   List<UserLocationResponseDto> getAllHistoricalLocations(String userId);
+
+  boolean checkExistsUserId(String userId);
 }

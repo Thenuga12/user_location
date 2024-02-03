@@ -31,6 +31,11 @@ public class UserLocationController {
   public ResponseEntity<Object> postUserLocation(@PathVariable("user_id") String userId,
       @RequestBody UserLocationRequestDto userLocationRequestDto) {
     try {
+      if (userLocationService.checkExistsUserId(userId)) {
+        return ResponseEntity.ok(new BaseResponse(RequestStatus.FAILURE.getStatus(),
+            statusCodeBundle.getCodeUserAlreadyExists(),
+            statusCodeBundle.getUserAlreadyExistsMessage()));
+      }
       userLocationRequestDto.setUserId(userId);
       userLocationService.saveUserLocation(userLocationRequestDto);
       return ResponseEntity.ok(new BaseResponse(RequestStatus.SUCCESS.getStatus(),

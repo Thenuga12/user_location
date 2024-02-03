@@ -35,4 +35,11 @@ public class StatusCodeBundle {
 
   @Value("${code.location.not.found}")
   private String codeLocationNotFound;
+
+  @Value("${message.user.already.exists}")
+  private String userAlreadyExistsMessage;
+
+  @Value("${code.user.already.exists}")
+  private String codeUserAlreadyExists;
+
 }
