@@ -9,6 +9,7 @@ import com.example.demo.dto.request.UserLocationRequestDto;
 import com.example.demo.dto.response.UserLocationResponseDto;
 import com.example.demo.restEnum.RequestStatus;
 import com.example.demo.service.UserLocationService;
+import com.example.demo.service.WebSocketService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,56 +27,47 @@ public class UserLocationController {
   private UserLocationService userLocationService;
   @Autowired
   private StatusCodeBundle statusCodeBundle;
+  @Autowired
+  private WebSocketService webSocketService;
+
 
   @PostMapping(value = EndPointURI.USER_LOCATION)
   public ResponseEntity<Object> postUserLocation(@PathVariable("user_id") String userId,
       @RequestBody UserLocationRequestDto userLocationRequestDto) {
+    userLocationRequestDto.setUserId(userId);
+    userLocationService.saveUserLocation(userLocationRequestDto);
     try {
-      if (userLocationService.checkExistsUserId(userId)) {
-        return ResponseEntity.ok(new BaseResponse(RequestStatus.FAILURE.getStatus(),
-            statusCodeBundle.getCodeUserAlreadyExists(),
-            statusCodeBundle.getUserAlreadyExistsMessage()));
-      }
-      userLocationRequestDto.setUserId(userId);
-      userLocationService.saveUserLocation(userLocationRequestDto);
-      return ResponseEntity.ok(new BaseResponse(RequestStatus.SUCCESS.getStatus(),
-          statusCodeBundle.getCommonSuccessCode(),
-          statusCodeBundle.getSaveUserLocationSuccessMessage()));
-
+      webSocketService.sendLocation(userLocationRequestDto, userId);
     } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(new BaseResponse(RequestStatus.FAILURE.getStatus(),
-              statusCodeBundle.getCodeForUnableToSave(),
-              statusCodeBundle.getUnableToSaveUserLocationMessage()));
-
+      return ResponseEntity.ok(new BaseResponse(RequestStatus.FAILURE.getStatus(),
+          statusCodeBundle.getCodeLocationNotFound(),
+          e.getMessage()));
     }
+    return ResponseEntity.ok(new BaseResponse(RequestStatus.SUCCESS.getStatus(),
+        statusCodeBundle.getCommonSuccessCode(),
+        statusCodeBundle.getSaveUserLocationSuccessMessage()));
   }
 
   @GetMapping(value = EndPointURI.USER_LOCATION_BY_USER_ID)
   public ResponseEntity<Object> getCurrentLocation(@PathVariable("user_id") String userId) {
 
-    UserLocationResponseDto userLocation = userLocationService.getCurrentLocation(userId);
-
-    if (userLocation != null) {
-      return ResponseEntity.ok((new ContentResponse<>(Constants.LOCATION, userLocation,
-          RequestStatus.SUCCESS.getStatus(), statusCodeBundle.getCommonSuccessCode(),
-          statusCodeBundle.getLocationGetSuccessMessage())));
-    } else {
+    if (!userLocationService.checkExistsUserId(userId)) {
       return ResponseEntity.ok(new BaseResponse(RequestStatus.FAILURE.getStatus(),
-          statusCodeBundle.getCodeLocationNotFound(),
-          statusCodeBundle.getLocationNotFoundMessage()));
+          statusCodeBundle.getCodeUserIdNotExists(),
+          statusCodeBundle.getUserIdNotExistsMessage()));
     }
+    return ResponseEntity.ok(
+        (new ContentResponse<>(Constants.LOCATION, userLocationService.getCurrentLocation(
+            userId),
+            RequestStatus.SUCCESS.getStatus(), statusCodeBundle.getCommonSuccessCode(),
+            statusCodeBundle.getLocationGetSuccessMessage())));
   }
 
   @GetMapping(value = EndPointURI.HISTORICAL_LOCATION_BY_USER_ID)
   public ResponseEntity<Object> getHistoricalLocations(@PathVariable("user_id") String userId,
       @RequestParam(required = false) int limit) {
     List<UserLocationResponseDto> historicalLocations;
-    if (limit != 0) {
-      historicalLocations = userLocationService.getHistoricalLocations(userId, limit);
-    } else {
-      historicalLocations = userLocationService.getAllHistoricalLocations(userId);
-    }
+    historicalLocations = userLocationService.getHistoricalLocations(userId, limit);
     if (historicalLocations.isEmpty()) {
       return ResponseEntity.ok(new BaseResponse(RequestStatus.FAILURE.getStatus(),
           statusCodeBundle.getCodeLocationNotFound(),

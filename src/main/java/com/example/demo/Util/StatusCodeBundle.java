@@ -42,4 +42,11 @@ public class StatusCodeBundle {
   @Value("${code.user.already.exists}")
   private String codeUserAlreadyExists;
 
+  @Value("${message.user.id.not.exists}")
+  private String userIdNotExistsMessage;
+
+  @Value("${code.user.id.not.exists}")
+  private String codeUserIdNotExists;
+
+
 }

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,7 +27,8 @@ public class UserLocationServiceImpl implements UserLocationService {
 
   @Override
   public UserLocationResponseDto getCurrentLocation(String userId) {
-    Optional<UserLocation> userLocation = userLocationRepository.findByUserId(userId);
+    Optional<UserLocation> userLocation = userLocationRepository.findTopByUserIdOrderByTimeStampDesc(
+        userId);
     UserLocationResponseDto userLocationResponseDto = new UserLocationResponseDto();
     if (userLocation.isPresent()) {
       BeanUtils.copyProperties(userLocation.get(), userLocationResponseDto);
@@ -37,8 +39,8 @@ public class UserLocationServiceImpl implements UserLocationService {
   @Override
   public List<UserLocationResponseDto> getHistoricalLocations(String userId, int limit) {
     List<UserLocationResponseDto> userLocationResponseDtoList = new ArrayList<>();
-    List<UserLocation> userLocationList = userLocationRepository.findTopNByUserIdOrderByTimeStampDesc(
-        userId);
+    List<UserLocation> userLocationList = userLocationRepository.findByUserIdOrderByTimeStampDesc(
+        userId, PageRequest.of(0, limit));
     for (UserLocation userLocation : userLocationList) {
       UserLocationResponseDto userLocationResponseDto = new UserLocationResponseDto();
       BeanUtils.copyProperties(userLocation, userLocationResponseDto);
