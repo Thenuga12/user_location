@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.EndPointURI;
 import com.example.demo.dto.response.UserLocationResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -13,7 +14,7 @@ public class WebSocketController {
   @Autowired
   private SimpMessagingTemplate messagingTemplate;
 
-  @MessageMapping("/send-location")
+  @MessageMapping(value = EndPointURI.USER_LOCATION_BY_USER_ID)
   public void sendLocation(@Payload UserLocationResponseDto locationMessage) {
     messagingTemplate.convertAndSend("/topic/location", locationMessage);
   }
